@@ -1,6 +1,6 @@
 """
 Step 2: Base Model Setup & LoRA Fine-tuning
-Fine-tunes HuggingFaceTB/SmolLM2-135M on mock perturbation data using SFTTrainer + LoRA.
+Fine-tunes HuggingFaceTB/SmolLM2-135M on perturbation biology data using SFTTrainer + LoRA.
 Saves adapter weights to ./perturb-lora.
 """
 

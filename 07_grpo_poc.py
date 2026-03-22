@@ -45,7 +45,7 @@ def parse_args():
                         default="3B-Instruct")
     parser.add_argument("--steps", type=int, default=100)
     parser.add_argument("--num-generations", type=int, default=4)
-    parser.add_argument("--batch-size", type=int, default=2)
+    parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--lr", type=float, default=5e-6)
     return parser.parse_args()
 

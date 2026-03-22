@@ -20,7 +20,9 @@ python 02c_train_lora_7b.py --model mistral-7b  # Mistral-7B-Instruct (A100, QLo
 
 # Step 4: Evaluate
 python 05_evaluation.py --model-size 135M
+python 05_evaluation.py --model-size 1.7B
 python 05_evaluation.py --model-size 3B-Instruct
+python 05_evaluation.py --model-size 7B-Instruct
 
 # Step 5: Interpretability
 python 03_interpretability.py --all --model-size 135M
