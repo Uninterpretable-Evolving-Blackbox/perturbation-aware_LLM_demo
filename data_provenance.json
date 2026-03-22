@@ -1,0 +1,19 @@
+{
+  "mave_source": "MaveDB API (api.mavedb.org/api/v1)",
+  "mave_score_sets": {
+    "BRCA1": "urn:mavedb:00000003-a-2",
+    "TP53": "urn:mavedb:00000059-a-1",
+    "PTEN": "urn:mavedb:00000013-a-1",
+    "KRAS": "urn:mavedb:00000115-a-1"
+  },
+  "mave_citations": {
+    "BRCA1": "Starita et al. (2015) Genetics. doi:10.1534/genetics.115.175802 \u2014 E3 ubiquitin ligase activity",
+    "TP53": "Kotler et al. (2018) Mol Cell. doi:10.1016/j.molcel.2018.06.012 \u2014 cell growth fitness",
+    "PTEN": "Matreyek et al. \u2014 protein abundance by VAMP-seq",
+    "KRAS": "Weng et al. (2023) \u2014 DARPin K55 binding free energy (doubledeepPCA + MoChi)"
+  },
+  "crispr_source": "DepMap Portal API (Chronos_Combined, 25Q3+Score)",
+  "scperturb_note": "Biologically grounded synthetic (real gene names, pathways)",
+  "total_examples": 480,
+  "unique_examples": 467
+}
