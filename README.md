@@ -3,38 +3,32 @@
 A proof-of-concept for multimodal perturbation biology with mechanistic interpretability.
 Built as a demo for GSoC 2026 at EMBL-EBI (Perturbation Catalogue, Project 9).
 
-## Quick Start
+## Results
 
-```bash
-pip install torch transformers peft trl>=0.15.0 datasets accelerate bitsandbytes scikit-learn matplotlib gradio requests
+### Held-Out Evaluation (96 test examples)
 
-# Step 1: Data already prepared (perturb_data.jsonl, ~470 unique examples)
-# Step 2: Create train/test split
-python data_split.py
+| Model | Gene Accuracy | Classification Acc | Score (±0.15) |
+|-------|:---:|:---:|:---:|
+| SmolLM2-135M base | 0% | 0% | 0% |
+| SmolLM2-135M + LoRA | 0% | 0% | 0% |
+| SmolLM2-1.7B base | 0% | 0% | 0% |
+| SmolLM2-1.7B + LoRA | 8.3% | 0% | 0% |
+| Qwen2.5-3B-Instruct base | 0% | 0% | 0% |
+| **Qwen2.5-3B-Instruct + LoRA** | **41.7%** | **6.8%** | **6.2%** |
+| Mistral-7B-Instruct base | 0% | 0% | 0% |
+| **Mistral-7B-Instruct + LoRA** | **91.7%** | **54.5%** | **28.1%** |
 
-# Step 3: Fine-tune models
-python 02_train_lora.py                        # SmolLM2-135M
-python 02b_train_lora_1.7b.py                  # SmolLM2-1.7B (GPU)
-python 02c_train_lora_7b.py --model qwen-3b    # Qwen2.5-3B-Instruct (GPU)
-python 02c_train_lora_7b.py --model mistral-7b  # Mistral-7B-Instruct (A100, QLoRA)
+Base models (135M, 1.7B) produce gibberish — they've never seen instruction format. Instruct models show that fine-tuning teaches the perturbation domain: Mistral-7B achieves 91.7% gene accuracy and 54.5% classification accuracy from only 381 training examples.
 
-# Step 4: Evaluate
-python 05_evaluation.py --model-size 135M
-python 05_evaluation.py --model-size 1.7B
-python 05_evaluation.py --model-size 3B-Instruct
-python 05_evaluation.py --model-size 7B-Instruct
+### Cross-Modal Gene Overlap (live API queries)
 
-# Step 5: Interpretability
-python 03_interpretability.py --all --model-size 135M
-python 03_interpretability.py --all --model-size 3B-Instruct
+| | Depth (K562 GW) | Breadth (K562+RPE1) |
+|---|:---:|:---:|
+| Perturbation targets | 6,775 | 2,247 |
+| ∩ MaveDB | 207 | 60 |
+| Three-way anchors (all 3 modalities) | **207** | **60** |
 
-# Step 6: rBio-informed extensions
-python 06_perturbqa_eval.py --model-size 3B-Instruct
-python 07_grpo_poc.py --steps 100 --model-size 3B-Instruct
-
-# Step 7: Launch interactive demo
-python 04_app.py
-```
+207 genes have CRISPR dependency data + MAVE variant scores + single-cell perturbation responses — these are the cross-modal anchor genes for training.
 
 ## Scaling Story
 
@@ -45,61 +39,86 @@ python 04_app.py
 | Qwen2.5-3B-Instruct | Instruct | Already knows instruction-following, fine-tuning teaches domain |
 | Mistral-7B-Instruct | Instruct (QLoRA) | Target scale — demonstrates GSoC viability |
 
+## Quick Start
+
+```bash
+pip install torch transformers peft trl>=0.15.0 datasets accelerate bitsandbytes scikit-learn matplotlib gradio requests
+
+python data_split.py                                # Deduplicated 80/20 split
+
+python 02_train_lora.py                             # SmolLM2-135M
+python 02b_train_lora_1.7b.py                       # SmolLM2-1.7B
+python 02c_train_lora_7b.py --model qwen-3b         # Qwen2.5-3B-Instruct
+python 02c_train_lora_7b.py --model mistral-7b      # Mistral-7B (QLoRA, A100)
+
+python 05_evaluation.py --model-size 135M            # Evaluate all models
+python 05_evaluation.py --model-size 1.7B
+python 05_evaluation.py --model-size 3B-Instruct
+python 05_evaluation.py --model-size 7B-Instruct
+
+python 03_interpretability.py --all --model-size 135M
+python 03_interpretability.py --all --model-size 3B-Instruct
+
+python 06_perturbqa_eval.py --model-size 3B-Instruct # rBio-format eval
+python 07_grpo_poc.py --steps 100 --model-size 3B-Instruct  # GRPO PoC
+
+python cross_modal_overlap.py                        # Gene overlap analysis
+python 04_app.py                                     # Launch Gradio demo
+```
+
 ## Data Sources
 
 - **MAVE** (320 examples): Real variant functional scores from MaveDB API
-  - BRCA1, TP53, PTEN, KRAS score sets
+  - BRCA1 — Starita et al. (2015), TP53 — Kotler et al. (2018), PTEN — Matreyek et al., KRAS — Weng et al. (2023)
 - **CRISPR** (120 examples): Real Chronos gene-effect scores from DepMap Portal API
   - 10 cancer genes across 1,186 cell lines
 - **scPerturb-seq** (40 examples): Synthetic, biologically grounded
+  - Real gene names and pathways, unique (gene, cell_line) pairs
 
 ## Pipeline Architecture
 
 ```
 01_data_prep.py          → MaveDB + DepMap API → perturb_data.jsonl
-data_split.py            → 80/20 stratified split → train.jsonl + test.jsonl
-02_train_lora.py         → SFTTrainer + LoRA (135M) → perturb-lora/
-02b_train_lora_1.7b.py   → Same for 1.7B → perturb-lora-1.7b/
-02c_train_lora_7b.py     → Qwen-3B / Mistral-7B → perturb-lora-qwen3b / perturb-lora-7b
-05_evaluation.py         → Field extraction + accuracy → evaluation_results_*.json
-03_interpretability.py   → PCA + linear probes → interpretability_*/
-06_perturbqa_eval.py     → PerturbQA binary evaluation → perturbqa_results.json
-07_grpo_poc.py           → GRPO proof-of-concept → grpo_poc_results.json
-04_app.py                → Gradio chat + interpretability + evaluation display
+data_split.py            → Deduplicated 80/20 split → train.jsonl + test.jsonl
+02_train_lora.py         → SFT + LoRA (135M) → perturb-lora/
+02b_train_lora_1.7b.py   → SFT + LoRA (1.7B) → perturb-lora-1.7b/
+02c_train_lora_7b.py     → SFT + LoRA/QLoRA (3B/7B) → perturb-lora-*/
+05_evaluation.py         → Regex field extraction + accuracy → results/
+03_interpretability.py   → PCA + linear probes → results/interpretability_*/
+06_perturbqa_eval.py     → PerturbQA binary eval → results/perturbqa_results.json
+07_grpo_poc.py           → GRPO proof-of-concept → results/grpo_poc_results.json
+cross_modal_overlap.py   → Live API gene overlap → results/cross_modal_overlap.json
+04_app.py                → Gradio chat + interpretability + evaluation UI
 ```
 
 ## rBio-Informed Extensions
 
 ### PerturbQA-Format Evaluation
 
-We convert our scPerturb-seq examples into PerturbQA binary format (Istrate et al. 2025):
+We convert scPerturb-seq examples into PerturbQA binary format (Istrate et al. 2025):
 "Is a knockdown of [gene A] in [cell line] cells likely to result in differential expression of [gene B]?"
 
-This enables comparison with rBio's metrics (balanced accuracy, F1, MCC) on the same task format.
-
-**Note**: Our results use synthetic scPerturb-seq data and are NOT directly comparable to rBio's results on real PerturbQA data. Evaluation on the actual PerturbQA test splits with real Perturb-seq data (Replogle et al. 2022) is a GSoC deliverable.
+**Note**: Results use synthetic scPerturb-seq data and are NOT directly comparable to rBio's results on real PerturbQA data. Evaluation on the actual PerturbQA test splits is a GSoC deliverable.
 
 ### GRPO Proof-of-Concept
 
-We implement a minimal GRPO training loop following rBio's methodology, using TRL's GRPOTrainer with a hard verification reward function:
-- +0.3 for producing a clear yes/no answer (format reward)
-- +0.7 for matching the ground truth (correctness reward)
-
-This validates the GRPO pipeline implementation. rBio trained for 100k steps on 8×H100; our PoC runs 100 steps on a single A100. Full-scale GRPO training with biological verifiers (GO annotations, pathway consistency) is a GSoC deliverable.
+Minimal GRPO training loop following rBio's methodology, using TRL's GRPOTrainer with a hard verification reward function (+0.3 format, +0.7 correctness). 100 steps on a single A100 vs rBio's 100k steps on 8×H100. Full-scale GRPO training with biological verifiers is a GSoC deliverable.
 
 ## Limitations
 
 - **scPerturb-seq data is synthetic**. Real data from Replogle et al. (2022) replaces this in GSoC.
 - **Only ~470 unique examples**. GSoC targets 6,500+ from the Perturbation Catalogue.
 - **No cross-modal examples** in the demo. GSoC adds 500-1,000 examples requiring multi-source reasoning.
-- **PCA is a simple interpretability method**. GSoC adds Sparse Autoencoder decomposition.
-- **GRPO PoC is 100 steps**. Meaningful biological reasoning requires GSoC-scale compute.
+- **GRPO PoC is 100 steps** — validates the pipeline, not the biology.
 - **PerturbQA comparison is illustrative** (synthetic data), not a real benchmark.
 
 This demo validates the pipeline. The GSoC project scales every component.
 
 ## References
 
-- Istrate, A.-M. et al. (2025). rbio1. bioRxiv. doi:10.1101/2025.08.18.670981
+- Starita, L. M. et al. (2015). Massively parallel functional analysis of BRCA1 RING domain variants. *Genetics*. doi:10.1534/genetics.115.175802
+- Kotler, E. et al. (2018). A systematic p53 mutation library links differential functional impact to cancer mutation pattern. *Mol Cell*. doi:10.1016/j.molcel.2018.06.012
+- Replogle, J. M. et al. (2022). Mapping information-rich genotype-phenotype landscapes with genome-scale Perturb-seq. *Cell*.
+- Norman, T. M. et al. (2019). Exploring genetic interaction manifolds constructed from rich single-cell phenotypes. *Science*.
+- Istrate, A.-M. et al. (2025). rbio1. *bioRxiv*. doi:10.1101/2025.08.18.670981
 - Wu, M. et al. (2025). PerturbQA. arXiv:2502.21290
-- Replogle, J. M. et al. (2022). Mapping information-rich genotype-phenotype landscapes with genome-scale Perturb-seq. Cell.
