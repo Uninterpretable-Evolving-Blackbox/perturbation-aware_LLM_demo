@@ -1,0 +1,47 @@
+{
+  "model": "Qwen/Qwen2.5-3B-Instruct",
+  "model_size": "3B-Instruct",
+  "n_questions": 572,
+  "n_positive": 286,
+  "n_negative": 286,
+  "base_metrics": {
+    "balanced_accuracy": 0.17482517482517482,
+    "f1": 0,
+    "tpr": 0.0,
+    "tnr": 0.34965034965034963,
+    "mcc": -0.9965095879543846,
+    "tp": 0,
+    "fp": 285,
+    "tn": 1,
+    "fn": 286,
+    "n_total": 572,
+    "n_unanswered": 570
+  },
+  "finetuned_metrics": {
+    "balanced_accuracy": 50.0,
+    "f1": 0,
+    "tpr": 0.0,
+    "tnr": 100.0,
+    "mcc": 0,
+    "tp": 0,
+    "fp": 0,
+    "tn": 286,
+    "fn": 286,
+    "n_total": 572,
+    "n_unanswered": 0
+  },
+  "reference_rbio": {
+    "rbio_EXP_all_cell_lines": {
+      "f1": 0.75,
+      "ba": 0.88,
+      "tpr": 0.83,
+      "mcc": 0.71
+    },
+    "qwen25_3b_base": {
+      "f1": 0.23,
+      "ba": 0.52,
+      "tpr": 0.49,
+      "mcc": 0.03
+    }
+  }
+}

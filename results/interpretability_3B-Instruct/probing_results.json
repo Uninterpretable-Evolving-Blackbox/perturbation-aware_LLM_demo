@@ -1,0 +1,44 @@
+{
+  "layer_6": {
+    "modality": {
+      "base_mean": 100.0,
+      "base_std": 0.0,
+      "ft_mean": 100.0,
+      "ft_std": 0.0
+    },
+    "gene": {
+      "base_mean": 94.96929824561404,
+      "base_std": 1.3934225021942999,
+      "ft_mean": 92.66228070175438,
+      "ft_std": 0.6668037139837023
+    }
+  },
+  "layer_18": {
+    "modality": {
+      "base_mean": 100.0,
+      "base_std": 0.0,
+      "ft_mean": 100.0,
+      "ft_std": 0.0
+    },
+    "gene": {
+      "base_mean": 98.95175438596493,
+      "base_std": 0.6657643362566125,
+      "ft_mean": 98.11622807017542,
+      "ft_std": 1.220102599765717
+    }
+  },
+  "layer_30": {
+    "modality": {
+      "base_mean": 100.0,
+      "base_std": 0.0,
+      "ft_mean": 100.0,
+      "ft_std": 0.0
+    },
+    "gene": {
+      "base_mean": 100.0,
+      "base_std": 0.0,
+      "ft_mean": 99.58114035087719,
+      "ft_std": 0.5130079253043308
+    }
+  }
+}
