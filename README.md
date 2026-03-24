@@ -5,20 +5,18 @@ Built as a demo for GSoC 2026 at EMBL-EBI (Perturbation Catalogue, Project 9).
 
 ## Results
 
-### Held-Out Evaluation (96 test examples)
+### Held-Out Evaluation (288 train / 72 test, balanced 120 per modality)
 
-| Model | Gene Accuracy | Classification Acc | Score (±0.15) |
-|-------|:---:|:---:|:---:|
-| SmolLM2-135M base | 0% | 0% | 0% |
-| SmolLM2-135M + LoRA | 0% | 0% | 0% |
-| SmolLM2-1.7B base | 0% | 0% | 0% |
-| SmolLM2-1.7B + LoRA | 8.3% | 0% | 0% |
-| Qwen2.5-3B-Instruct base | 0% | 0% | 0% |
-| **Qwen2.5-3B-Instruct + LoRA** | **41.7%** | **6.8%** | **6.2%** |
-| Mistral-7B-Instruct base | 0% | 0% | 0% |
-| **Mistral-7B-Instruct + LoRA** | **91.7%** | **54.5%** | **28.1%** |
+**CRISPR and MAVE (real data, regex field extraction):**
 
-Base models (135M, 1.7B) produce gibberish — they've never seen instruction format. Instruct models show that fine-tuning teaches the perturbation domain: Mistral-7B achieves 91.7% gene accuracy and 54.5% classification accuracy from only 381 training examples.
+| Model | CRISPR Gene | MAVE Gene | CRISPR Class | MAVE Class |
+|-------|:---:|:---:|:---:|:---:|
+| SmolLM2-135M base → ft | 0→0% | 0→0% | 0→0% | 0→0% |
+| SmolLM2-1.7B base → ft | 0→0% | 0→0% | 0→0% | 0→0% |
+| Qwen-3B-Instruct base → ft | 0→4.2% | 0→0% | 0→0% | 0→0% |
+| **Mistral-7B base → ft** | **4.2→100%** | **0→95.8%** | **0→37.5%** | **0→45.8%** |
+
+Base models produce gibberish. Instruct models show that fine-tuning teaches the perturbation domain: Mistral-7B achieves 100% CRISPR and 95.8% MAVE gene accuracy from 288 training examples.
 
 ### Cross-Modal Gene Overlap (live API queries)
 
@@ -57,6 +55,7 @@ python 05_evaluation.py --model-size 3B-Instruct
 python 05_evaluation.py --model-size 7B-Instruct
 
 python 03_interpretability.py --all --model-size 135M
+python 03_interpretability.py --all --model-size 1.7B
 python 03_interpretability.py --all --model-size 3B-Instruct
 
 python 06_perturbqa_eval.py --model-size 3B-Instruct # rBio-format eval
@@ -68,17 +67,17 @@ python 04_app.py                                     # Launch Gradio demo
 
 ## Data Sources
 
-- **MAVE** (320 examples): Real variant functional scores from MaveDB API
+- **MAVE** (120 examples): Real variant functional scores from MaveDB API
   - BRCA1 — Starita et al. (2015), TP53 — Kotler et al. (2018), PTEN — Matreyek et al., KRAS — Weng et al. (2023)
 - **CRISPR** (120 examples): Real Chronos gene-effect scores from DepMap Portal API
   - 10 cancer genes across 1,186 cell lines
-- **scPerturb-seq** (40 examples): Synthetic, biologically grounded
-  - Real gene names and pathways, unique (gene, cell_line) pairs
+- **scPerturb-seq** (120 examples): Synthetic, biologically grounded
+  - 12 genes × 10 cell lines, unique pairs, real gene names and pathways
 
 ## Pipeline Architecture
 
 ```
-01_data_prep.py          → MaveDB + DepMap API → perturb_data.jsonl
+01_data_prep.py          → MaveDB + DepMap API → perturb_data.jsonl (360 balanced)
 data_split.py            → Deduplicated 80/20 split → train.jsonl + test.jsonl
 02_train_lora.py         → SFT + LoRA (135M) → perturb-lora/
 02b_train_lora_1.7b.py   → SFT + LoRA (1.7B) → perturb-lora-1.7b/
@@ -107,7 +106,7 @@ Minimal GRPO training loop following rBio's methodology, using TRL's GRPOTrainer
 ## Limitations
 
 - **scPerturb-seq data is synthetic**. Real data from Replogle et al. (2022) replaces this in GSoC.
-- **Only ~470 unique examples**. GSoC targets 6,500+ from the Perturbation Catalogue.
+- **Only 360 balanced examples**. GSoC targets 6,500+ from the Perturbation Catalogue.
 - **No cross-modal examples** in the demo. GSoC adds 500-1,000 examples requiring multi-source reasoning.
 - **GRPO PoC is 100 steps** — validates the pipeline, not the biology.
 - **PerturbQA comparison is illustrative** (synthetic data), not a real benchmark.

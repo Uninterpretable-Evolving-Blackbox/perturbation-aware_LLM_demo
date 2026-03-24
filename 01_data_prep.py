@@ -108,7 +108,8 @@ def generate_mave_examples():
     examples = []
     for gene, info in MAVE_SCORE_SETS.items():
         print(f"Fetching MaveDB scores for {gene}...")
-        variants = fetch_mave_scores(info["urn"], max_variants=80)
+        # 30 variants per gene × 4 genes = 120, matching CRISPR count
+        variants = fetch_mave_scores(info["urn"], max_variants=30)
         for v in variants:
             classification, mechanism = classify_mave_variant(v["score"], gene)
             instruction = (
@@ -148,6 +149,12 @@ PATHWAYS = {
     "BRAF": "RAF/MEK/ERK kinase signaling",
     "PIK3CA": "PI3K lipid kinase / AKT activation",
     "APC": "Wnt/β-catenin signaling and chromosomal stability",
+    "MAP2K1": "MEK/ERK MAPK signaling cascade",
+    "JAK2": "JAK/STAT cytokine signaling",
+    "AKT1": "PI3K/AKT/mTOR survival signaling",
+    "STAT3": "JAK/STAT transcriptional activation",
+    "CDKN1A": "p21-mediated cell cycle arrest",
+    "NRAS": "RAS/MAPK/ERK signaling",
 }
 
 
@@ -262,8 +269,15 @@ def generate_crispr_examples(csv_text, max_examples=120):
 # We generate realistic differential-expression summaries referencing
 # real gene interactions from the CRISPR and MAVE data above.
 # ---------------------------------------------------------------------------
-SC_PERTURB_GENES = ["MAP2K1", "BRAF", "KRAS", "MYC", "TP53", "EGFR", "PTEN", "JAK2"]
-SC_CELL_LINES = ["K562", "RPE1", "A549", "MCF7", "Jurkat", "THP1"]
+# 12 genes × 10 cell lines = 120 unique pairs, matching MAVE and CRISPR counts
+SC_PERTURB_GENES = [
+    "MAP2K1", "BRAF", "KRAS", "MYC", "TP53", "EGFR",
+    "PTEN", "JAK2", "AKT1", "STAT3", "CDKN1A", "NRAS",
+]
+SC_CELL_LINES = [
+    "K562", "RPE1", "A549", "MCF7", "Jurkat",
+    "THP1", "HEK293T", "HeLa", "U2OS", "PC9",
+]
 DE_GENE_POOLS = {
     "up": ["CDKN1A", "MDM2", "GADD45A", "BAX", "BBC3", "SESN2", "FAS", "TNFRSF10B",
            "CCNG1", "DDB2", "PLK3", "TIGAR", "RRM2B", "FDXR", "AEN", "ZMAT3"],
@@ -272,15 +286,15 @@ DE_GENE_POOLS = {
 }
 
 
-def generate_scperturb_examples(n=40):
+def generate_scperturb_examples(n=120):
     """Generate realistic scPerturb-seq style examples with unique (gene, cell_line) pairs."""
     import itertools
 
     # Generate all possible unique (gene, cell_line) pairs
+    # 12 genes × 10 cell lines = 120, matching MAVE and CRISPR
     all_pairs = list(itertools.product(SC_PERTURB_GENES, SC_CELL_LINES))
     random.shuffle(all_pairs)
 
-    # Take n unique pairs (n=40, we have 48 possible)
     selected_pairs = all_pairs[:n]
 
     examples = []
@@ -330,7 +344,8 @@ def main():
     print(f"  CRISPR examples: {len(crispr_examples)}")
 
     # 3) scPerturb-seq — biologically grounded synthetic
-    scperturb_examples = generate_scperturb_examples(n=40)
+    # 120 = all unique (gene, cell_line) pairs from 12 genes × 10 cell lines
+    scperturb_examples = generate_scperturb_examples(n=120)
     print(f"  scPerturb-seq examples: {len(scperturb_examples)}")
 
     # Combine and shuffle

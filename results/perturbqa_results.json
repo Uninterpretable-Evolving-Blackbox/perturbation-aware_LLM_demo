@@ -1,21 +1,21 @@
 {
   "model": "Qwen/Qwen2.5-3B-Instruct",
   "model_size": "3B-Instruct",
-  "n_questions": 572,
-  "n_positive": 286,
-  "n_negative": 286,
+  "n_questions": 1636,
+  "n_positive": 818,
+  "n_negative": 818,
   "base_metrics": {
-    "balanced_accuracy": 0.17482517482517482,
+    "balanced_accuracy": 0.6112469437652812,
     "f1": 0,
     "tpr": 0.0,
-    "tnr": 0.34965034965034963,
-    "mcc": -0.9965095879543846,
+    "tnr": 1.2224938875305624,
+    "mcc": -0.9878488804609838,
     "tp": 0,
-    "fp": 285,
-    "tn": 1,
-    "fn": 286,
-    "n_total": 572,
-    "n_unanswered": 570
+    "fp": 808,
+    "tn": 10,
+    "fn": 818,
+    "n_total": 1636,
+    "n_unanswered": 1623
   },
   "finetuned_metrics": {
     "balanced_accuracy": 50.0,
@@ -25,9 +25,9 @@
     "mcc": 0,
     "tp": 0,
     "fp": 0,
-    "tn": 286,
-    "fn": 286,
-    "n_total": 572,
+    "tn": 818,
+    "fn": 818,
+    "n_total": 1636,
     "n_unanswered": 0
   },
   "reference_rbio": {
