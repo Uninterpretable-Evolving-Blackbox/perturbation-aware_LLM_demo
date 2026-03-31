@@ -38,10 +38,10 @@ Base models produce gibberish. Instruct models show that fine-tuning teaches the
 | Mistral-7B-Instruct | Instruct (QLoRA) | Target scale — demonstrates GSoC viability |
 
 ## Quick Start
-
 ```bash
 pip install torch transformers peft trl>=0.15.0 datasets accelerate bitsandbytes scikit-learn matplotlib gradio requests
 
+python 01_data_prep.py                              # Fetch from MaveDB + DepMap APIs
 python data_split.py                                # Deduplicated 80/20 split
 
 python 02_train_lora.py                             # SmolLM2-135M
@@ -68,14 +68,13 @@ python 04_app.py                                     # Launch Gradio demo
 ## Data Sources
 
 - **MAVE** (120 examples): Real variant functional scores from MaveDB API
-  - BRCA1 — Starita et al. (2015), TP53 — Kotler et al. (2018), PTEN — Matreyek et al., KRAS — Weng et al. (2023)
+  - BRCA1 — Starita et al. (2015), TP53 — Kotler et al. (2018), PTEN — Matreyek et al. (2018), KRAS — Weng et al. (2024)
 - **CRISPR** (120 examples): Real Chronos gene-effect scores from DepMap Portal API
   - 10 cancer genes across 1,186 cell lines
 - **scPerturb-seq** (120 examples): Synthetic, biologically grounded
   - 12 genes × 10 cell lines, unique pairs, real gene names and pathways
 
 ## Pipeline Architecture
-
 ```
 01_data_prep.py          → MaveDB + DepMap API → perturb_data.jsonl (360 balanced)
 data_split.py            → Deduplicated 80/20 split → train.jsonl + test.jsonl
@@ -116,8 +115,10 @@ This demo validates the pipeline. The GSoC project scales every component.
 ## References
 
 - Starita, L. M. et al. (2015). Massively parallel functional analysis of BRCA1 RING domain variants. *Genetics*. doi:10.1534/genetics.115.175802
-- Kotler, E. et al. (2018). A systematic p53 mutation library links differential functional impact to cancer mutation pattern. *Mol Cell*. doi:10.1016/j.molcel.2018.06.012
+- Kotler, E. et al. (2018). A systematic p53 mutation library links differential functional impact to cancer mutation pattern and evolutionary conservation. *Mol Cell*. doi:10.1016/j.molcel.2018.06.012
+- Matreyek, K. A. et al. (2018). Multiplex assessment of protein variant abundance by massively parallel sequencing. *Nat Genet*. doi:10.1038/s41588-018-0122-z
+- Weng, C. et al. (2024). The energetic and allosteric landscape for KRAS inhibition. *Nature*. doi:10.1038/s41586-023-06954-0
 - Replogle, J. M. et al. (2022). Mapping information-rich genotype-phenotype landscapes with genome-scale Perturb-seq. *Cell*.
 - Norman, T. M. et al. (2019). Exploring genetic interaction manifolds constructed from rich single-cell phenotypes. *Science*.
-- Istrate, A.-M. et al. (2025). rbio1. *bioRxiv*. doi:10.1101/2025.08.18.670981
-- Wu, M. et al. (2025). PerturbQA. arXiv:2502.21290
+- Istrate, A.-M. et al. (2025). rbio1 — training scientific reasoning LLMs with biological world models as soft verifiers. *bioRxiv*. doi:10.1101/2025.08.18.670981
+- Wu, M. et al. (2025). Contextualizing biological perturbation experiments through language. *ICLR 2025*. arXiv:2502.21290
